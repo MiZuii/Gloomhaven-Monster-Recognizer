@@ -1,0 +1,3 @@
+[submodule "model/sam2-repo"]
+	path = model/sam2-repo
+	url = git@github.com:facebookresearch/sam2.git

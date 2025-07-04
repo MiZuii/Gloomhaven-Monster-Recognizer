@@ -1,0 +1,57 @@
+# YOLOv8 segmentation dataset config
+
+path: dataset
+train: images/train
+val: images/val
+test: images/test
+
+nc: 47
+
+names:
+  0: inox_bodyguard
+  1: sun_demon
+  2: ancient_artillery
+  3: stone_golem
+  4: inox_archer
+  5: inox_shaman
+  6: inox_guard
+  7: harrower_infester
+  8: lurker
+  9: flame_demon
+  10: city_archer
+  11: rending_drake
+  12: cave_bear
+  13: savvas_lavaflow
+  14: vermling_scout
+  15: forest_imp
+  16: deep_terror
+  17: ooze
+  18: bandit_guard
+  19: living_bones
+  20: savvas_icestorm
+  21: living_spirit
+  22: city_guard
+  23: bandit_archer
+  24: wind_demon
+  25: earth_demon
+  26: cultist
+  27: vermling_shaman
+  28: black_imp
+  29: giant_viper
+  30: hound
+  31: living_corpse
+  32: night_demon
+  33: spitting_drake
+  34: frost_demon
+  35: jekserah
+  36: bandit_commander
+  37: captain_of_the_guard
+  38: merciless_overseer
+  39: the_betrayer
+  40: the_colorless
+  41: the_gloom
+  42: the_sightless_eye
+  43: dark_rider
+  44: winged_horror
+  45: prime_demon
+  46: elder_drake 

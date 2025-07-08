@@ -1,6 +1,8 @@
+import 'main.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:flutter_vision/flutter_vision.dart';
+import 'isolates/detection_isolate.dart';
+import 'package:provider/provider.dart';
 
 class GMRCameraView extends StatefulWidget {
 
@@ -27,29 +29,27 @@ class GMRCameraView extends StatefulWidget {
 
 class _GMRCameraViewState extends State<GMRCameraView> {
   late CameraController _controller;
-  late FlutterVision _vision;
-  List<Map<String, dynamic>> _latestDetectionResult = [];
+  late ImageDetectionIsolate _imageDetectionIsolate;
   bool _isModelDetecting = false;
+  dynamic _latestModelResults;
 
   @override
   void initState() {
     super.initState();
 
-    // model initialization
-    _vision = FlutterVision();
+    // isolate init
+    _imageDetectionIsolate = ImageDetectionIsolate();
+    _imageDetectionIsolate.initialize();
 
     // camera initialization
-    _controller = CameraController(GMRCameraView.getCamera(0), ResolutionPreset.low);
+    _controller = CameraController(GMRCameraView.getCamera(1), ResolutionPreset.low);
     _controller.initialize().then((_) {
       if (!mounted) {
         return;
       }
 
-      // load YOLO model
-      loadYoloModel().then((_) {
-        _controller.startImageStream(recognitionModelImageStream);
-        setState(() {});
-      });
+      _controller.startImageStream((image) => recognitionModelImageStream(context, image));
+
     }).catchError((Object e) {
       if (e is CameraException) {
         switch (e.code) {
@@ -64,17 +64,10 @@ class _GMRCameraViewState extends State<GMRCameraView> {
     });
   }
 
-  Future<void> loadYoloModel() async {
-    await _vision.loadYoloModel(
-        labels: 'assets/models/labels.txt',
-        modelPath: 'assets/models/gmr-yolo11s-seg.tflite',
-        modelVersion: "yolov11seg",
-        numThreads: 8,
-        useGpu: true);
-  }
-
-  void recognitionModelImageStream(CameraImage image) async
+  void recognitionModelImageStream(BuildContext context, CameraImage image)
   {
+    var appState = Provider.of<GMRAppState>(context, listen: false);
+
     if( _isModelDetecting )
     {
       return;
@@ -84,24 +77,20 @@ class _GMRCameraViewState extends State<GMRCameraView> {
       _isModelDetecting = true;
     });
 
-    final result = await _vision.yoloOnFrame(
-      bytesList: image.planes.map((plane) => plane.bytes).toList(),
-      imageHeight: image.height,
-      imageWidth: image.width,
-      iouThreshold: 0.4,
-      confThreshold: 0.4,
-      classThreshold: 0.5);
 
-    setState(() {
-      _latestDetectionResult = result;
-      _isModelDetecting = false;
+    _imageDetectionIsolate.compute(image, appState.currentMonsterIdx).then((result) => {
+      setState(() {
+        _latestModelResults = result;
+        _isModelDetecting = false;
+        print("LATEST MODEL RESULT: $result");
+      })
     });
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    _vision.closeYoloModel();
+    _imageDetectionIsolate.dispose();
     super.dispose();
   }
 

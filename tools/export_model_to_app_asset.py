@@ -23,12 +23,12 @@ def main():
 
     # export the model to the app asset
     model = ultralytics.YOLO(os.path.join(RUNS_PATH, latest_run, "weights", "best.pt"))
-    model.export(format="tflite")
-    model.export(format="coreml")
+    model.export(format="tflite", nms=True)
+    model.export(format="coreml", nms=True)
 
     # rename and move models to assets
-    shutil.move(os.path.join(RUNS_PATH, latest_run, "weights", "best_saved_model", "best_float32.tflite"), os.path.join(TARGET_DIR, "gmr-yolo11s-seg.tflite"))
-    shutil.move(os.path.join(RUNS_PATH, latest_run, "weights", "best.mlpackage", "Data", "com.apple.CoreML", "model.mlmodel"), os.path.join(TARGET_DIR, "gmr-yolo11s-seg.mlmodel"))
+    shutil.copy(os.path.join(RUNS_PATH, latest_run, "weights", "best_saved_model", "best_float32.tflite"), os.path.join(TARGET_DIR, "gmr-yolo11s-seg.tflite"))
+    shutil.copy(os.path.join(RUNS_PATH, latest_run, "weights", "best.mlpackage", "Data", "com.apple.CoreML", "model.mlmodel"), os.path.join(TARGET_DIR, "gmr-yolo11s-seg.mlmodel"))
 
 
 if __name__ == "__main__":

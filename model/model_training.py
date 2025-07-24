@@ -5,7 +5,7 @@ from ultralytics.data.converter import convert_segment_masks_to_yolo_seg
 
 MODELS_DIR = "yolo_models"
 
-model = YOLO(os.path.join(MODELS_DIR, "yolo11s-seg.pt"))
+model = YOLO(os.path.join(MODELS_DIR, "yolo11s.pt"))
 
 results = model.train(
     data="data.yaml",
@@ -21,4 +21,4 @@ results = model.train(
     copy_paste=1,
     copy_paste_mode="mixup",)
 
-model.save(os.path.join(MODELS_DIR, "gmr-yolo11s-seg.pt"))
+model.save(os.path.join(MODELS_DIR, "gmr-yolo11s.pt"))

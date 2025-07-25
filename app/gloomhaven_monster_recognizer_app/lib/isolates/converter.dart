@@ -44,7 +44,7 @@ Image convertYUV420toImage(CameraImage image) {
         double g = (yp - up * 46549 / 131072 + 44 - vp * 93604 / 131072 + 91).clamp(0, 255);
         double b = (yp + up * 1814 / 1024 - 227).clamp(0, 255);
 
-        img.getPixel(x, y).setRgb(r, g, b);
+        img.setPixel(x, y, ColorFloat32.rgb(r, g, b));
       }
     }
 

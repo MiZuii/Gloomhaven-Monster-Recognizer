@@ -99,8 +99,64 @@ class _GMRCameraViewState extends State<GMRCameraView> {
     if (!_controller.value.isInitialized) {
       return Container();
     }
+    // Get the preview size from the controller
+    final previewSize = _controller.value.previewSize;
     return MaterialApp(
-      home: CameraPreview(_controller),
+      home: Scaffold(
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            CameraPreview(_controller),
+            if (_latestModelResults != null &&
+                _latestModelResults['bbox'] != null &&
+                _latestModelResults['bbox'] is List &&
+                _latestModelResults['bbox'].length == 4 &&
+                previewSize != null)
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  return CustomPaint(
+                    painter: BoundingBoxPainter(
+                      _latestModelResults['bbox'],
+                      previewSize: previewSize,
+                      widgetSize: Size(constraints.maxWidth, constraints.maxHeight),
+                    ),
+                    child: Container(),
+                  );
+                },
+              ),
+          ],
+        ),
+      ),
     );
   }
+}
+
+class BoundingBoxPainter extends CustomPainter {
+  final List<dynamic> bbox;
+  final Size previewSize;
+  final Size widgetSize;
+  BoundingBoxPainter(this.bbox, {required this.previewSize, required this.widgetSize});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (bbox.length != 4) return;
+    final paint = Paint()
+      ..color = const Color(0xFFFF0000)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5.0;
+    // bbox: [x1, y1, x2, y2] in 640x640
+    // Scale to widget size
+    double scaleX = widgetSize.width / 640.0;
+    double scaleY = widgetSize.height / 640.0;
+    final rect = Rect.fromLTRB(
+      bbox[0].toDouble() * scaleX,
+      bbox[1].toDouble() * scaleY,
+      bbox[2].toDouble() * scaleX,
+      bbox[3].toDouble() * scaleY,
+    );
+    canvas.drawRect(rect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 } 

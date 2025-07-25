@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:typed_data';
 import 'dart:isolate';
+import 'package:flutter/foundation.dart';
 import 'package:camera/camera.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart';
@@ -123,45 +125,75 @@ class ImageDetectionIsolate
         final CameraImage image = message['image'] as CameraImage;
         final int classIdToDetect = message['classId'] as int;
 
+        // transform camera image to image package format
         var img = convertBaseOnTargetDevice(image);
-        img = bakeOrientation(img);
-        img = resize(img, height: 640, width: 640, maintainAspect: true);
-        img = normalize(img, min: 0, max: 1);
 
-        var output1 = List.filled(1*83*8400, 0).reshape([1,83,8400]);
-        var output2 = List.filled(1*160*160*32, 0).reshape([1,160,160,32]);
+        img = bakeOrientation(img);
+
+        // resize image
+        double top  = 0;
+        double left = 0;
+        double r    = min(640 / image.height, 640 / image.width); 
+        if( image.width > image.height )
+        {
+          img = resize(img, width: 640, maintainAspect: true);
+          top = (640 - img.height) / 2;
+        }
+        else
+        {
+          img  = resize(img, height: 640, maintainAspect: true);
+          left = (640 - img.width) / 2;
+        }
+
+        // add padding
+        var nimg = Image(width: 640, height: 640, format: Format.float32);
+        for( var pixel in nimg )
+        {
+          pixel.setRgb(114, 114, 114);
+        }
+
+        copyExpandCanvas(img, newWidth: 640, newHeight: 640, toImage: nimg);
+
+        // normalize image
+        img = normalize(nimg, min: 0, max: 1);
+
+        var output1 = List.filled(1*300*6, 0).reshape([1,300,6]);
         final output = {
           0: output1,
-          1: output2,
         };
 
-        var input = img
-          .toList()
-          .map((e) => e.toList())
-          .toList()
+        var input = img.buffer
+          .asFloat32List()
           .reshape([1, 640, 640, 3]);
 
         interpreter.runForMultipleInputs([input], output);
 
-        print("MODEL FINISHED DETECTION");
-
-        double bestScore = 0;
+        double bestScore = -1;
         List<double> bbox = [0, 0, 0, 0];
         if(output[0] != null)
         {
           for( List<double> detection in output[0]![0] )
           {
-            if(detection[4+classIdToDetect] > bestScore)
+            if( detection[5].toInt() == classIdToDetect )
             {
-              bestScore = detection[4+classIdToDetect];
-              bbox[0] = detection[0];
-              bbox[1] = detection[1];
-              bbox[2] = detection[2];
-              bbox[3] = detection[3];
+              if( detection[4] > bestScore )
+              {
+                bestScore = detection[4];
+
+                // calculate the bounding box
+                var x1p = detection[0] * 640;
+                var y1p = detection[1] * 640;
+                var x2p = detection[2] * 640;
+                var y2p = detection[3] * 640;
+
+                bbox[0] = (x1p - left);
+                bbox[2] = (x2p - left);
+                bbox[1] = (y1p - top);
+                bbox[3] = (y2p - top);
+              }
             }
           }
         }
-        print("SENDING: $bestScore $bbox");
 
         creatorSendPort.send({
           'id': taskId,

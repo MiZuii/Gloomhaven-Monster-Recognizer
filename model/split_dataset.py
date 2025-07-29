@@ -8,8 +8,8 @@ from pathlib import Path
 # Config
 LABELS_PATH = 'labels.json'
 GLUM_DATASET_DIR = 'glum_dataset'
-DATASET_IMAGES_DIR = 'dataset/images'
-DATASET_MASKS_DIR = 'dataset/masks'
+DATASET_IMAGES_DIR = 'basic_dataset/images'
+DATASET_MASKS_DIR = 'basic_dataset/masks'
 SPLITS = {'train': 0.8, 'val': 0.1, 'test': 0.1}
 SEED = 1
 

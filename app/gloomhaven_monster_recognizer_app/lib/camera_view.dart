@@ -42,7 +42,7 @@ class _GMRCameraViewState extends State<GMRCameraView> {
     _imageDetectionIsolate.initialize();
 
     // camera initialization
-    _controller = CameraController(GMRCameraView.getCamera(1), ResolutionPreset.low);
+    _controller = CameraController(GMRCameraView.getCamera(0), ResolutionPreset.medium);
     _controller.initialize().then((_) {
       if (!mounted) {
         return;

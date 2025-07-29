@@ -20,7 +20,8 @@ input_details = interpreter.get_input_details()
 output_details = interpreter.get_output_details()
 
 # Load and preprocess the first test image
-img_path = os.path.join(TEST_DIR, TEST_FILES[random.randint(0, 200)])
+# img_path = os.path.join(TEST_DIR, TEST_FILES[random.randint(0, 100)])
+img_path = "testimg.jpg"
 img = cv2.imread(img_path)
 if img is None:
     raise FileNotFoundError(f"Image not found: {img_path}")
@@ -65,7 +66,7 @@ confidences = []
 class_ids = []
 
 for x1, y1, x2, y2, conf, class_id in det_output[0]:
-    if conf > 0.8:
+    if conf > 0.5:
         # Convert from normalized (0-1) to padded image coordinates
         x1_padded = x1 * new_shape[1]
         x2_padded = x2 * new_shape[1]
@@ -87,10 +88,11 @@ for x1, y1, x2, y2, conf, class_id in det_output[0]:
         print(f"Box: x={x1_abs}, y={y1_abs}, x2={x2_abs}, y2={y2_abs}, conf={conf:.2f}, class={class_id}")
         cv2.rectangle(img, (x1_abs, y1_abs), (x2_abs, y2_abs), (0, 255, 0), 2)
         label = f"{class_id}: {conf:.2f}"
-        cv2.putText(img, label, (x1_abs, max(y1_abs-10, 0)), cv2.FONT_HERSHEY_SIMPLEX, 2, (0,255,0), 2)
+        cv2.putText(img, label, (x1_abs, max(y1_abs-10, 0)), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 2)
 
 # Show the image with bounding boxes
-preview = cv2.resize(img, (min(720, img.shape[1]), min(1280, img.shape[0])))
+# preview = cv2.resize(img, (min(720, img.shape[1]), min(1280, img.shape[0])))
+preview = cv2.resize(img, (min(1280, img.shape[1]), min(720, img.shape[0])))
 cv2.imshow('Detections', preview)
 cv2.waitKey(0)
 cv2.destroyAllWindows()

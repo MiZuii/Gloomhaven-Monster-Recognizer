@@ -2,6 +2,7 @@
 **/venv
 
 glum_dataset
+basic_dataset
 dataset
 gloomhaven-monster-recognizer
 yolo_models
